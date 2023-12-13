@@ -1,4 +1,6 @@
 # t1.py tokenizer
+# alias ttt='clear; cat p0609.in; python3 problems/p0609.py p0609.in'
+
 import sys        # sys needed to access cmd line args and sys.exit()
 
 class Token:
@@ -75,7 +77,48 @@ def main():
         str(token.line) + ' column ' + str(token.column))
      print(emsg) # message from RuntimeError object
      sys.exit(1)       # 1 return code indicates an error has occurred
- 
+
+# slip single line and multiple lines comments /* */
+def skip_comments(curchar):
+   global sourceindex
+   saveindex = sourceindex
+   state = 1
+   c = curchar
+   while True:
+      if c == '':
+         sourceindex = saveindex
+         return c
+      if state == 1:
+         if c == '/':
+            state = 2
+            c = getchar()
+            continue
+         else:
+            sourceindex = saveindex
+            return c
+      if state == 2:
+         if c == '*':
+            state = 3
+            c = getchar()
+            continue
+         else:
+            sourceindex = saveindex
+            return c
+      if state == 3:
+         if c == '*':
+            state = 4
+            c = getchar()
+            continue
+         else:
+            pass
+      if state == 4:
+         if c == '/':
+            return getchar()
+         else:
+            state = 3
+            c = getchar()
+            continue
+
 # tokenizer tokenizes tokens in source code and appends them to tokens
 def tokenizer():
    global token
@@ -85,6 +128,8 @@ def tokenizer():
       # skip whitespace but not newlines
       while curchar != '\n' and curchar.isspace():
          curchar = getchar() # get next char from source program
+
+      curchar = skip_comments(curchar)
 
       # construct and initialize a new token
       token = Token(line, column, None, '')  
