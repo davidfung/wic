@@ -78,24 +78,16 @@ def main():
      print(emsg) # message from RuntimeError object
      sys.exit(1)       # 1 return code indicates an error has occurred
 
-# slip single line and multiple lines comments /* */
+# skip single line and multiple lines comments /* */
 def skip_comments(curchar):
    global sourceindex
    saveindex = sourceindex
-   state = 1
-   c = curchar
+   c = getchar()
+   state = 2
    while True:
       if c == '':
          sourceindex = saveindex
-         return c
-      if state == 1:
-         if c == '/':
-            state = 2
-            c = getchar()
-            continue
-         else:
-            sourceindex = saveindex
-            return c
+         return curchar
       if state == 2:
          if c == '*':
             state = 3
@@ -103,17 +95,22 @@ def skip_comments(curchar):
             continue
          else:
             sourceindex = saveindex
-            return c
+            return curchar
       if state == 3:
          if c == '*':
             state = 4
             c = getchar()
             continue
          else:
-            pass
+            c = getchar()
       if state == 4:
          if c == '/':
-            return getchar()
+            curchar = getchar()
+            while curchar != '\n' and curchar.isspace():
+               curchar = getchar() # get next char from source program
+            return curchar
+         elif c == '*':
+            c = getchar()
          else:
             state = 3
             c = getchar()
@@ -129,7 +126,8 @@ def tokenizer():
       while curchar != '\n' and curchar.isspace():
          curchar = getchar() # get next char from source program
 
-      curchar = skip_comments(curchar)
+      if curchar == '/':
+         curchar = skip_comments(curchar)
 
       # construct and initialize a new token
       token = Token(line, column, None, '')  
