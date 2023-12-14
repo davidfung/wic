@@ -9,9 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": [
-                "p0609.in"
-            ],
+            "args": [],
             "console": "integratedTerminal",
             "justMyCode": true
         }
