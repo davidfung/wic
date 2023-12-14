@@ -12,7 +12,7 @@ class Token:
       self.lexeme = lexeme     # token in string form
 
 # global variables
-trace = True           # controls token trace
+trace = False          # controls token trace
 source = ''            # receives entire source program
 sourceindex = 0        # index into source
 line = 0               # current line number 
@@ -49,18 +49,23 @@ smalltokens = {'=':ASSIGNOP, '(':LEFTPAREN, ')':RIGHTPAREN,
 
 # main() reads input file and calls tokenizer()
 def main():
-   global source
+   global source, trace
 
-   if len(sys.argv) == 2:   # check if correct number of cmd line args
-      try:
-         infile = open(sys.argv[1], 'r')
-         source = infile.read()  # read source program
-      except IOError:
-         print('Cannot read input file ' + sys.argv[1])
-         sys.exit(1)
+   if len(sys.argv) in (2, 3):   # check if correct number of cmd line args
+      for i in range(1, len(sys.argv)):
+         if sys.argv[i] == '-traceon':
+            trace = True
+         else:
+            try:
+               infile = open(sys.argv[i], 'r')
+               source = infile.read()  # read source program
+            except IOError:
+               print('Cannot read input file ' + sys.argv[i])
+               sys.exit(1)
    else:
       print('Wrong number of command line arguments')
-      print('format: python t1.py <infile>')
+      print('format: python t1.py <infile> -traceon')
+      print('format: python t1.py -traceon <infile>')
       sys.exit(1)
 
    if source[-1] != '\n':        # add newline to end if missing
