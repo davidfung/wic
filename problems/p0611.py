@@ -17,6 +17,7 @@ column = 0             # current column number
 tokenlist = []         # list of tokens created by tokenizer
 prevchar = '\n'        # '\n' in prevchar signals start of new line
 blankline = True       # reset to False if line is not blank
+curchar = ' '
 
 # constants that represent token categories
 EOF           = 0      # end of file
@@ -67,7 +68,14 @@ def main():
       print('Line  Col Category       Lexeme\n')
 
    try:
-      tokenizer()                # tokenize source code in source
+      while True:
+         token = tokenizer()                # tokenize source code in source
+         if trace:                    # display token if trace is True
+            print("%3s %4s  %-14s %s" % (str(token.line), 
+               str(token.column), catnames[token.category], token.lexeme))
+         if token.category == EOF:    # finished tokenizing?
+            break
+
    except RuntimeError as emsg: 
      # output slash n in place of newline
      lexeme = token.lexeme.replace('\n', '\\n')
@@ -78,56 +86,48 @@ def main():
  
 # tokenizer tokenizes tokens in source code and appends them to tokens
 def tokenizer():
-   global token
-   curchar = ' '                 # prime curchar with space
+   global curchar
 
-   while True:
-      # skip whitespace but not newlines
-      while curchar != '\n' and curchar.isspace():
-         curchar = getchar() # get next char from source program
+   # skip whitespace but not newlines
+   while curchar != '\n' and curchar.isspace():
+      curchar = getchar() # get next char from source program
 
-      # construct and initialize a new token
-      token = Token(line, column, None, '')  
+   # construct and initialize a new token
+   token = Token(line, column, None, '')  
 
-      if curchar.isdigit():            # start of unsigned int?
-         token.category = UNSIGNEDINT  # save category of token
-         while True:
-            token.lexeme += curchar    # append curchar to lexeme
-            curchar = getchar()        # get next character
-            if not curchar.isdigit():  # break if not a digit
-               break
+   if curchar.isdigit():            # start of unsigned int?
+      token.category = UNSIGNEDINT  # save category of token
+      while True:
+         token.lexeme += curchar    # append curchar to lexeme
+         curchar = getchar()        # get next character
+         if not curchar.isdigit():  # break if not a digit
+            break
 
-      elif curchar.isalpha() or curchar == '_':   # start of name?
-         while True:
-            token.lexeme += curchar    # append curchar to lexeme
-            curchar = getchar()        # get next character
-            # break if not letter, '_', or digit
-            if not (curchar.isalnum() or curchar == '_'):
-               break
+   elif curchar.isalpha() or curchar == '_':   # start of name?
+      while True:
+         token.lexeme += curchar    # append curchar to lexeme
+         curchar = getchar()        # get next character
+         # break if not letter, '_', or digit
+         if not (curchar.isalnum() or curchar == '_'):
+            break
 
-         # determine if lexeme is a keyword or name of variable
-         if token.lexeme in keywords:
-            token.category = keywords[token.lexeme]
-         else:
-            token.category = NAME
+      # determine if lexeme is a keyword or name of variable
+      if token.lexeme in keywords:
+         token.category = keywords[token.lexeme]
+      else:
+         token.category = NAME
 
-      elif curchar in smalltokens:
-         token.category = smalltokens[curchar]   # get category
-         token.lexeme = curchar
-         curchar = getchar()       # move to first char after token
+   elif curchar in smalltokens:
+      token.category = smalltokens[curchar]   # get category
+      token.lexeme = curchar
+      curchar = getchar()       # move to first char after token
 
-      else:                         
-         token.category = ERROR    # invalid token 
-         token.lexeme = curchar    # save lexeme
-         raise RuntimeError('Invalid token')
-      
-      tokenlist.append(token)      # append token to tokens list
-      if trace:                    # display token if trace is True
-         print("%3s %4s  %-14s %s" % (str(token.line), 
-            str(token.column), catnames[token.category], token.lexeme))
-
-      if token.category == EOF:    # finished tokenizing?
-         break
+   else:                         
+      token.category = ERROR    # invalid token 
+      token.lexeme = curchar    # save lexeme
+      raise RuntimeError('Invalid token')
+   
+   return token
 
 # getchar() gets next char from source and adjusts line and column
 def getchar():
