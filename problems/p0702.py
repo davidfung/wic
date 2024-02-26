@@ -91,8 +91,9 @@ def main():
 ####################
 # tokenizer        #
 ####################
-def tokenizer(tokenlist):
+def tokenizer():
    global token
+   tokenlist = []
    curchar = ' '          # prime curchar with space
 
    while True:
@@ -143,6 +144,8 @@ def tokenizer(tokenlist):
       if token.category == EOF:    # finished tokenizing?
          break
 
+   return tokenlist
+
 # getchar() gets next char from source and adjusts line and column
 def getchar():
    global sourceindex, column, line, prevchar, blankline
@@ -183,87 +186,87 @@ def advance(tokenlist):
    token = tokenlist[tokenindex]
 
 # advances if current token is the expected token
-def consume(expectedcat):
+def consume(tokenlist, expectedcat):
    if (token.category == expectedcat):
-      advance()
+      advance(tokenlist)
    else:
      raise RuntimeError('Expecting ' + catnames[expectedcat])
 
 # top level function of parser
-def parser():
-   advance()     # advance so token holds first token
-   program()     # call function corresponding to start symbol
+def parser(tokenlist):
+   advance(tokenlist)     # advance so token holds first token
+   program(tokenlist)     # call function corresponding to start symbol
    # will token.category ever not equal EOF here?
    if token.category != EOF:
       raise RuntimeError('Expecting end of file')
 
 # <program> -> <stmt>*
-def program():
+def program(tokenlist):
    while token.category in [NAME, PRINT]:
-      stmt() 
+      stmt(tokenlist) 
 
 # <stmt> -> <simplestmt> NEWLINE
-def stmt():
-   simplestmt()
-   consume(NEWLINE)
+def stmt(tokenlist):
+   simplestmt(tokenlist)
+   consume(tokenlist, NEWLINE)
 
 # <simplestmt> -> <assignstatement>
 # <simplestmt> -> <printstatement>
-def simplestmt():
+def simplestmt(tokenlist):
    if token.category == NAME:
-      assignmentstmt()
+      assignmentstmt(tokenlist)
    elif token.category == PRINT:
-      printstmt()
+      printstmt(tokenlist)
    else:
       raise RuntimeError('Expecting simple statement')
 
 # <assigementstmt> -> NAME '=' <expr>
-def assignmentstmt():
-   advance()
-   consume(ASSIGNOP)
-   expr()
+def assignmentstmt(tokenlist):
+   advance(tokenlist)
+   consume(tokenlist, ASSIGNOP)
+   expr(tokenlist)
 
 # <assigementstmt> -> PRINT '(' <expr> ')'
-def printstmt():
-   advance()
-   consume(LEFTPAREN)
-   expr()
-   consume(RIGHTPAREN)
+def printstmt(tokenlist):
+   advance(tokenlist)
+   consume(tokenlist, LEFTPAREN)
+   expr(tokenlist)
+   consume(tokenlist, RIGHTPAREN)
 
 # <expr> -> <term> ('+' <term>)*
-def expr():   
-   term()
+def expr(tokenlist):   
+   term(tokenlist)
    while token.category == PLUS:
-      advance()
-      term()
+      advance(tokenlist)
+      term(tokenlist)
 
 # <term> -> <factor> ('*' <factor>)*
-def term():
-   factor()
+def term(tokenlist):
+   factor(tokenlist)
    while token.category == TIMES:
-      advance()
-      factor()
+      advance(tokenlist)
+      factor(tokenlist)
 
 # <factor> -> '+' <factor>
 # <factor> -> '-' <factor>
 # <factor> -> UNSIGNEDINT
 # <factor> -> NAME
 # <factor> -> '(' <expr> ')'
-def factor():
+def factor(tokenlist):
    if token.category == PLUS:
-      advance()
-      factor()
+      advance(tokenlist)
+      factor(tokenlist)
    elif token.category == MINUS:
-      advance()
-      factor()
+      advance(tokenlist)
+      factor(tokenlist)
    elif token.category == UNSIGNEDINT:
-      advance()
+      advance(tokenlist)
    elif token.category == NAME:
-      advance()
+      advance(tokenlist)
    elif token.category == LEFTPAREN:
-      advance()
-      expr()
-      consume(RIGHTPAREN)
+      advance(tokenlist)
+      expr(tokenlist)
+      consume(tokenlist, RIGHTPAREN)
    else:
       raise RuntimeError('Expecting factor')
 
