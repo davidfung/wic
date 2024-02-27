@@ -31,20 +31,21 @@ RIGHTPAREN    = 6    # ')'
 PLUS          = 7    # '+'
 MINUS         = 8    # '-'
 TIMES         = 9    # '*'
-NEWLINE       = 10   # end of line
-ERROR         = 11   # if not any of the above, then error
+DIVIDE        = 10   # '*'
+NEWLINE       = 11   # end of line
+ERROR         = 12   # if not any of the above, then error
 
 # displayable names for each token category
 catnames = ['EOF', 'print', 'UNSIGNEDINT', 'NAME', 'ASSIGNOP',
             'LEFTPAREN', 'RIGHTPAREN', 'PLUS', 'MINUS',
-            'TIMES', 'NEWLINE','ERROR']
+            'TIMES', 'DIVIDE', 'NEWLINE','ERROR']
 
 # keywords and their token categories}
 keywords = {'print': PRINT}
 
 # one-character tokens and their token categories
 smalltokens = {'=':ASSIGNOP, '(':LEFTPAREN, ')':RIGHTPAREN,
-               '+':PLUS, '-':MINUS, '*':TIMES, '\n':NEWLINE, '':EOF}
+               '+':PLUS, '-':MINUS, '*':TIMES, '/':DIVIDE, '\n':NEWLINE, '':EOF}
 
 #################
 # main function #
@@ -230,17 +231,17 @@ def printstmt():
    expr()
    consume(RIGHTPAREN)
 
-# <expr> -> <term> ('+' <term>)*
+# <expr> -> <term> ('+'|'-' <term>)*
 def expr():   
    term()
-   while token.category == PLUS:
+   while token.category == PLUS or token.category == MINUS:
       advance()
       term()
 
-# <term> -> <factor> ('*' <factor>)*
+# <term> -> <factor> ('*'|'/' <factor>)*
 def term():
    factor()
-   while token.category == TIMES:
+   while token.category == TIMES or token.category == DIVIDE:
       advance()
       factor()
 
