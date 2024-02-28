@@ -192,15 +192,19 @@ def consume(expectedcat):
 # top level function of parser
 def parser():
    advance()     # advance so token holds first token
-   program()     # call function corresponding to start symbol
+   stmtcnt = program()     # call function corresponding to start symbol
    # will token.category ever not equal EOF here?
    if token.category != EOF:
       raise RuntimeError('Expecting end of file')
+   print("Number of statements = ", stmtcnt)
 
 # <program> -> <stmt>*
 def program():
+   stmtcnt = 0
    while token.category in [NAME, PRINT]:
+      stmtcnt += 1
       stmt() 
+   return stmtcnt
 
 # <stmt> -> <simplestmt> NEWLINE
 def stmt():
