@@ -230,19 +230,35 @@ def printstmt():
    expr()
    consume(RIGHTPAREN)
 
-# <expr> -> <term> ('+' <term>)*
+# <expr> -> <term> (<term> '+')*
 def expr():   
+   global tokenindex
+   global token
    term()
-   while token.category == PLUS:
-      advance()
-      term()
+   while True:
+      saved = tokenindex
+      try:
+         term()
+         consume(PLUS)
+      except:
+         tokenindex = saved
+         token = tokenlist[tokenindex]
+         break
 
-# <term> -> <factor> ('*' <factor>)*
+# <term> -> <factor> (<factor> '*')*
 def term():
+   global tokenindex
+   global token
    factor()
-   while token.category == TIMES:
-      advance()
-      factor()
+   while True:
+      saved = tokenindex
+      try:
+         factor()
+         consume(TIMES)
+      except:
+         tokenindex = saved
+         token = tokenlist[tokenindex]
+         break
 
 # <factor> -> '+' <factor>
 # <factor> -> '-' <factor>
