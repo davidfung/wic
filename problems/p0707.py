@@ -1,3 +1,8 @@
+##
+## This code is not working yet.
+## It is hard to implement a post-fix grammar without a stack
+## dkf 240229
+
 # p1shell.py parser
 import sys, time   # sys needed to access cmd line args and sys.exit()
 
@@ -9,7 +14,7 @@ class Token:
       self.lexeme = lexeme     # token in string form
 
 # globals grade
-trace = False        # controls token trace
+trace = True        # controls token trace
 source = ''          # receives entire source program
 sourceindex = 0      # index into the source code in source
 line = 0             # current line number 
@@ -245,6 +250,8 @@ def expr():
          token = tokenlist[tokenindex]
          break
 
+#### print ( a b * c d * )
+#### 0     1 2 3 4 5 6 7 8
 # <term> -> <factor> (<factor> '*')*
 def term():
    global tokenindex
