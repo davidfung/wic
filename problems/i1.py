@@ -226,11 +226,13 @@ def assignmentstmt():
    advance()
    consume(ASSIGNOP) 
    expr()
+   symtab[left] = operandstack.pop()
 
 def printstmt():
    advance()
    consume(LEFTPAREN)
    expr()
+   print(operandstack.pop())
    consume(RIGHTPAREN)
 
 def expr():   
@@ -238,6 +240,9 @@ def expr():
    while token.category == PLUS:
       advance()
       term()
+      rightoperand = operandstack.pop()
+      leftoperand = operandstack.pop()
+      operandstack.append(leftoperand + rightoperand)
 
 def term():
    global sign
@@ -247,6 +252,9 @@ def term():
       advance()
       sign = 1
       factor()
+      rightoperand = operandstack.pop()
+      leftoperand = operandstack.pop()
+      operandstack.append(leftoperand * rightoperand)
 
 def factor():
    global sign
@@ -258,13 +266,20 @@ def factor():
       advance()
       factor()
    elif token.category == UNSIGNEDINT:
+      operandstack.append(sign * int(token.lexeme))
       advance()
    elif token.category == NAME:
+      if token.lexeme in symtab:
+         operandstack.append(sign * symtab[token.lexeme])
+      else:
+         raise RuntimeError('Name ' + token.lexeme + ' is not defined')
       advance()
    elif token.category == LEFTPAREN:
-      savesign = sign
       advance()
+      savesign = sign
       expr()
+      if savesign == -1:
+         operandstack[-1] = -operandstack[-1]
       consume(RIGHTPAREN)
    else:
       raise RuntimeError('Expecting factor')
