@@ -93,8 +93,16 @@ def main():
       lexeme = token.lexeme.replace('\n', '\\n')
       print('\nError on '+ "'" + lexeme + "'" + ' line ' +
          str(token.line) + ' column ' + str(token.column))
+      print(get_error_location(token))
       print(emsg)      # message from RuntimeError object
       sys.exit(1)
+
+def get_error_location(token):
+   lines = source.splitlines()
+   line = lines[token.line - 1]
+   pointer = ' ' * (token.column - 1) + '^'
+   msg = line + '\n' + pointer
+   return msg
  
 ####################
 # tokenizer        #
