@@ -1,0 +1,21 @@
+x = 1 + 2 * 3
+
+co_names
+0: 'x'
+
+co_consts
+0: 1
+1: 2
+2: 3
+
+co_code
+0: 100 LOAD_CONST
+1: 0
+2: 100 LOAD_CONST
+3: 1
+4: 100 LOAD_CONST
+5: 2
+6: 20  BINARY_MULTIPLY
+7: 23  BINARY_ADD
+8: 90  STORE_NAME
+9: 0
