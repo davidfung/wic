@@ -1,0 +1,37 @@
+x = 1 + 2 * 3
+
+co_names
+0: 'x'
+
+co_consts
+0: 1
+1: 2
+2: 3
+
+co_code
+0: 100 LOAD_CONST
+1: 0
+2: 100 LOAD_CONST
+3: 1
+4: 100 LOAD_CONST
+5: 2
+6: 20  BINARY_MULTIPLY
+7: 23  BINARY_ADD
+8: 90  STORE_NAME
+9: 0
+
+statement    co_code     Opcode name    Index      Item referenced
+number       index
+
+   1            0        LOAD_CONST       0        (1)
+                2        LOAD_CONST       1        (2)
+                4        LOAD_CONST       2        (3)
+                6        BINARY_MULTIPLY
+                7        BINARY_ADD
+                8        STORE_NAME       0        (x)
+
+$ python3 -d dis <source>
+  1           0 LOAD_CONST               0 (7)
+              2 STORE_NAME               0 (x)
+              4 LOAD_CONST               1 (None)
+              6 RETURN_VALUE
