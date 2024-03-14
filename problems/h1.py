@@ -295,7 +295,7 @@ def factor():
          index = co_consts.index(v)
       else:
          index = len(co_consts)
-         co_consts.append(int(token.lexeme))
+         co_consts.append(v)
       co_code.append(LOAD_CONST)
       co_code.append(index) 
       advance()
@@ -344,7 +344,7 @@ def interpreter():
       elif opcode == PRINT_ITEM:
          print(stack.pop(), end = '')
       elif opcode == PRINT_NEWLINE:
-         print("\n")
+         print("")
       elif opcode == STORE_NAME:
          index = co_code[pc]
          pc += 1
@@ -364,16 +364,6 @@ def interpreter():
          stack.append(value)
       else:
          break
-
-####################
-# start of program #
-####################
-main()
-if grade:
-   # display interpreter's source code
-   print('------------------------------------------- ' + sys.argv[0])
-   print(open(sys.argv[0]).read())
-
 
 ####################
 # start of program #
