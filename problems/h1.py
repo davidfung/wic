@@ -244,15 +244,23 @@ def simplestmt():
       raise RuntimeError('Expecting statement')
 
 def assignmentstmt():
-   left = token.lexeme       
+   if token.lexeme in co_names:
+      index = co_names.index(token.lexeme)
+   else:
+      index = len(co_names)
+      co_names.append(token.lexeme)
    advance()
    consume(ASSIGNOP)
    expr()
+   co_code.append(STORE_NAME)
+   co_code.append(index)
 
 def printstmt():
    advance()
    consume(LEFTPAREN)
    expr()
+   co_code.append(PRINT_ITEM)
+   co_code.append(PRINT_NEWLINE)
    consume(RIGHTPAREN)
 
 def expr():   
@@ -260,6 +268,7 @@ def expr():
    while token.category == PLUS:
       advance()
       term()
+      co_code.append(BINARY_ADD)
 
 def term():
    global sign
@@ -269,6 +278,7 @@ def term():
       advance()
       sign = 1
       factor()
+      co_code.append(BINARY_MULTIPLY)
 
 def factor():
    global sign 
@@ -280,13 +290,31 @@ def factor():
       advance()
       factor()
    elif token.category == UNSIGNEDINT:
+      v = sign * int(token.lexeme)
+      if v in co_consts:
+         index = co_consts.index(v)
+      else:
+         index = len(co_consts)
+         co_consts.append(int(token.lexeme))
+      co_code.append(LOAD_CONST)
+      co_code.append(index) 
       advance()
    elif token.category == NAME:
+      if token.lexeme in co_names:
+         index = co_names.index(token.lexeme)
+      else:
+         raise RuntimeError('Name ' + token.lexeme + ' is not defined')
+      co_code.append(LOAD_NAME)
+      co_code.append(index)
+      if sign == -1:
+         co_code.append(UNARY_NEGATIVE)
       advance()
    elif token.category == LEFTPAREN:
-      savesign = sign
       advance()
+      savesign = sign
       expr()
+      if savesign == -1:
+         co_code.append(UNARY_NEGATIVE)
       consume(RIGHTPAREN)
    else:
       raise RuntimeError('Expecting factor')
@@ -295,7 +323,57 @@ def factor():
 # bytecode interpreter #
 ########################
 def interpreter():
-   pass          # missing code
+   co_values = [None] * len(co_names)
+   stack = []
+   pc = 0
+
+   while pc < len(co_code):
+      opcode = co_code[pc]
+      pc += 1
+
+      if opcode == UNARY_NEGATIVE:
+         stack[-1] = -stack[-1]
+      elif opcode == BINARY_MULTIPLY:
+         right = stack.pop()
+         left = stack.pop()
+         stack.append(left * right)
+      elif opcode == BINARY_ADD:
+         right = stack.pop()
+         left = stack.pop()
+         stack.append(left + right)
+      elif opcode == PRINT_ITEM:
+         print(stack.pop(), end = '')
+      elif opcode == PRINT_NEWLINE:
+         print("\n")
+      elif opcode == STORE_NAME:
+         index = co_code[pc]
+         pc += 1
+         co_values[index] = stack.pop()
+      elif opcode == LOAD_CONST:
+         index = co_code[pc]
+         pc += 1
+         value = co_consts[index]
+         stack.append(value)
+      elif opcode == LOAD_NAME:
+         index = co_code[pc]
+         pc += 1
+         value = co_values[index]
+         if value == None:
+            print('No value for ' + co_names[index])
+            sys.exit(1)
+         stack.append(value)
+      else:
+         break
+
+####################
+# start of program #
+####################
+main()
+if grade:
+   # display interpreter's source code
+   print('------------------------------------------- ' + sys.argv[0])
+   print(open(sys.argv[0]).read())
+
 
 ####################
 # start of program #
