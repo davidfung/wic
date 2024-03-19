@@ -9,7 +9,7 @@ class Token:
       self.lexeme = lexeme     # token in string form
 
 # global variables 
-trace = False      # controls token trace
+trace = True      # controls token trace
 grade = False      # set to True to create output to be graded
 source = ''        # receives entire source program
 sourceindex = 0    # index into the source code in source
@@ -62,6 +62,9 @@ PRINT_NEWLINE     = 72      # hex 48
 STORE_NAME        = 90      # hex 5A
 LOAD_CONST        = 100     # hex 64
 LOAD_NAME         = 101     # hex 65
+STORE_R1          = 200     # hex c8
+ENTER_FRAME       = 201     # hex c9
+LEAVE_FRAME       = 202     # hex ca
 
 #################
 # main function #
@@ -263,25 +266,32 @@ def printstmt():
    co_code.append(PRINT_NEWLINE)
    consume(RIGHTPAREN)
 
-def expr():   
+def expr():
+   co_code.append(ENTER_FRAME)
    term()
    while token.category == PLUS:
+      co_code.append(STORE_R1)
       advance()
       term()
       co_code.append(BINARY_ADD)
+   co_code.append(LEAVE_FRAME)
 
 def term():
    global sign
+   co_code.append(ENTER_FRAME)
    sign = 1
    factor()
    while token.category == TIMES:
+      co_code.append(STORE_R1)
       advance()
       sign = 1
       factor()
       co_code.append(BINARY_MULTIPLY)
+   co_code.append(LEAVE_FRAME)
 
 def factor():
    global sign 
+   co_code.append(ENTER_FRAME)
    if token.category == PLUS:
       advance()
       factor()
@@ -318,6 +328,7 @@ def factor():
       consume(RIGHTPAREN)
    else:
       raise RuntimeError('Expecting factor')
+   co_code.append(LEAVE_FRAME)
 
 ########################
 # bytecode interpreter #
@@ -325,6 +336,8 @@ def factor():
 def interpreter():
    co_values = [None] * len(co_names)
    stack = []
+   acc = None
+   r1 = None
    pc = 0
 
    while pc < len(co_code):
@@ -332,28 +345,23 @@ def interpreter():
       pc += 1
 
       if opcode == UNARY_NEGATIVE:
-         stack[-1] = -stack[-1]
+         acc = -acc
       elif opcode == BINARY_MULTIPLY:
-         right = stack.pop()
-         left = stack.pop()
-         stack.append(left * right)
+         acc = acc * r1
       elif opcode == BINARY_ADD:
-         right = stack.pop()
-         left = stack.pop()
-         stack.append(left + right)
+         acc = acc + r1
       elif opcode == PRINT_ITEM:
-         print(stack.pop(), end = '')
+         print(acc, end = '')
       elif opcode == PRINT_NEWLINE:
          print("")
       elif opcode == STORE_NAME:
          index = co_code[pc]
          pc += 1
-         co_values[index] = stack.pop()
+         co_values[index] = acc
       elif opcode == LOAD_CONST:
          index = co_code[pc]
          pc += 1
-         value = co_consts[index]
-         stack.append(value)
+         acc = co_consts[index]
       elif opcode == LOAD_NAME:
          index = co_code[pc]
          pc += 1
@@ -361,7 +369,15 @@ def interpreter():
          if value == None:
             print('No value for ' + co_names[index])
             sys.exit(1)
-         stack.append(value)
+         acc = value
+      elif opcode == STORE_R1:
+         r1 = acc
+      elif opcode == ENTER_FRAME:
+         # stack.append(acc)
+         stack.append(r1)
+      elif opcode == LEAVE_FRAME:
+         r1 = stack.pop()
+         # acc = stack.pop()
       else:
          break
 
