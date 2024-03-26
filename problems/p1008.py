@@ -1,4 +1,5 @@
 # h1shell.py hybrid interpreter
+# test: $ python3 problems/p1008.py problems/p1008.in
 import sys, time   # sys needed to access cmd line args and sys.exit()
 
 class Token:
@@ -11,6 +12,10 @@ class Token:
 # global variables 
 trace = False      # controls token trace
 grade = False      # set to True to create output to be graded
+
+postfix = []       # problem 10.8 data structure
+stack = []
+
 source = ''        # receives entire source program
 sourceindex = 0    # index into the source code in source
 line = 0           # current line number 
@@ -96,7 +101,7 @@ def main():
 
    try:
       tokenizer() # tokenize source code in source
-      parser()    # parse and compile
+      parser2()    # parse and compile
 
    # on an error, display an error message
    # token is the token object on which the error was detected
@@ -116,7 +121,7 @@ def main():
 
    if grade or trace:
       print('------------------------------------------- Program output')
-   interpreter()  # interpret bytecode in co_code
+   interpreter2()  # interpret bytecode in co_code
 
 ####################
 # tokenizer        #
@@ -218,6 +223,33 @@ def consume(expectedcat):
       advance()
    else:
      raise RuntimeError('Expecting ' + catnames[expectedcat])
+
+def parser2():
+   print("Length of token list = ", len(tokenslist))
+   leftparen_symbol = list(smalltokens.keys())[list(smalltokens.values()).index(LEFTPAREN)]
+   for i, token in enumerate(tokenslist):
+      if token.category in (PLUS, MINUS, TIMES, ASSIGNOP, PRINT):
+         stack.append(token.lexeme)
+      elif token.category in (NEWLINE, EOF):
+         while len(stack) > 0:
+            postfix.append(stack.pop())
+      elif token.category in (NAME, UNSIGNEDINT):
+         postfix.append(token.lexeme) 
+      elif token.category in (LEFTPAREN,):
+         stack.append(token.lexeme)
+      elif token.category in (RIGHTPAREN,):
+         print(stack)
+         while len(stack) > 0:
+            lexeme = stack.pop()
+            if lexeme == leftparen_symbol:
+               break
+            postfix.append(lexeme) 
+            print("APPENDING ", lexeme)
+      else:
+         raise RuntimeError('Parsing error: unexpected token ', token.lexeme)
+   while len(stack) > 0:
+      postfix.append(stack.pop())
+   print("Postfix", postfix)
 
 # top level function of parser
 def parser():
@@ -322,6 +354,9 @@ def factor():
 ########################
 # bytecode interpreter #
 ########################
+def interpreter2():
+   print("interpreting...")
+
 def interpreter():
    co_values = [None] * len(co_names)
    stack = []
