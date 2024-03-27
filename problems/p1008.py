@@ -229,27 +229,27 @@ def parser2():
    leftparen_symbol = list(smalltokens.keys())[list(smalltokens.values()).index(LEFTPAREN)]
    for i, token in enumerate(tokenslist):
       if token.category in (PLUS, MINUS, TIMES, ASSIGNOP, PRINT):
-         stack.append(token.lexeme)
+         stack.append(token)
       elif token.category in (NEWLINE, EOF):
          while len(stack) > 0:
             postfix.append(stack.pop())
       elif token.category in (NAME, UNSIGNEDINT):
-         postfix.append(token.lexeme) 
+         postfix.append(token) 
       elif token.category in (LEFTPAREN,):
-         stack.append(token.lexeme)
+         stack.append(token)
       elif token.category in (RIGHTPAREN,):
-         print(stack)
          while len(stack) > 0:
-            lexeme = stack.pop()
+            token = stack.pop()
+            lexeme = token.lexeme
             if lexeme == leftparen_symbol:
                break
-            postfix.append(lexeme) 
-            print("APPENDING ", lexeme)
+            postfix.append(token) 
       else:
          raise RuntimeError('Parsing error: unexpected token ', token.lexeme)
    while len(stack) > 0:
       postfix.append(stack.pop())
-   print("Postfix", postfix)
+   for i, token in enumerate(postfix):
+      print(f"#{i}  {token.lexeme}")
 
 # top level function of parser
 def parser():
