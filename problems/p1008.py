@@ -227,7 +227,7 @@ def consume(expectedcat):
 def parser2():
    print("Length of token list = ", len(tokenslist))
    leftparen_symbol = list(smalltokens.keys())[list(smalltokens.values()).index(LEFTPAREN)]
-   for i, token in enumerate(tokenslist):
+   for token in tokenslist:
       if token.category in (PLUS, MINUS, TIMES, ASSIGNOP, PRINT):
          stack.append(token)
       elif token.category in (NEWLINE, EOF):
@@ -248,8 +248,6 @@ def parser2():
          raise RuntimeError('Parsing error: unexpected token ', token.lexeme)
    while len(stack) > 0:
       postfix.append(stack.pop())
-   for i, token in enumerate(postfix):
-      print(f"#{i}  {token.lexeme}")
 
 # top level function of parser
 def parser():
@@ -354,9 +352,6 @@ def factor():
 ########################
 # bytecode interpreter #
 ########################
-def interpreter2():
-   print("interpreting...")
-
 def interpreter():
    co_values = [None] * len(co_names)
    stack = []
@@ -399,6 +394,39 @@ def interpreter():
          stack.append(value)
       else:
          break
+
+def interpreter2():
+   stack = []
+   for token in postfix:
+      print("interpreting token:", token.lexeme)
+
+   for token in postfix:
+      if token.category == EOF:
+         pass
+      elif token.category == PRINT:
+         pass
+      elif token.category == UNSIGNEDINT:
+         pass
+      elif token.category == NAME:
+         pass
+      elif token.category == ASSIGNOP:
+         pass
+      elif token.category == LEFTPAREN:
+         pass
+      elif token.category == RIGHTPAREN:
+         pass
+      elif token.category == PLUS:
+         pass
+      elif token.category == MINUS:
+         pass
+      elif token.category == TIMES:
+         pass
+      elif token.category == NEWLINE:
+         pass
+      elif token.category == ERROR:
+         pass
+      else:
+         raise RuntimeError('interpreting error: unexpected token ', token.lexeme)
 
 ####################
 # start of program #
