@@ -225,7 +225,6 @@ def consume(expectedcat):
      raise RuntimeError('Expecting ' + catnames[expectedcat])
 
 def parser2():
-   print("Length of token list = ", len(tokenslist))
    leftparen_symbol = list(smalltokens.keys())[list(smalltokens.values()).index(LEFTPAREN)]
    for token in tokenslist:
       if token.category in (PLUS, MINUS, TIMES, ASSIGNOP, PRINT):
@@ -397,34 +396,44 @@ def interpreter():
 
 def interpreter2():
    stack = []
+   symbol = {}
+   lvar = False
+
    for token in postfix:
       print("interpreting token:", token.lexeme)
 
    for token in postfix:
-      if token.category == EOF:
-         pass
-      elif token.category == PRINT:
-         pass
+      if token.category == PRINT:
+         v = stack.pop()
+         if isinstance(v, str): v = symbol[v]
+         print(v)
       elif token.category == UNSIGNEDINT:
-         pass
+         v = int(token.lexeme)
+         stack.append(v)
       elif token.category == NAME:
-         pass
+         stack.append(token.lexeme)
       elif token.category == ASSIGNOP:
-         pass
-      elif token.category == LEFTPAREN:
-         pass
-      elif token.category == RIGHTPAREN:
-         pass
+         v = stack.pop()
+         s = stack.pop()
+         symbol[s] = v
       elif token.category == PLUS:
-         pass
+         b = stack.pop()
+         a = stack.pop()
+         if isinstance(b, str): b = symbol[b]
+         if isinstance(a, str): a = symbol[a]
+         stack.append(a+b)
       elif token.category == MINUS:
-         pass
+         b = stack.pop()
+         a = stack.pop()
+         if isinstance(b, str): b = symbol[b]
+         if isinstance(a, str): a = symbol[a]
+         stack.append(a-b)
       elif token.category == TIMES:
-         pass
-      elif token.category == NEWLINE:
-         pass
-      elif token.category == ERROR:
-         pass
+         b = stack.pop()
+         a = stack.pop()
+         if isinstance(b, str): b = symbol[b]
+         if isinstance(a, str): a = symbol[a]
+         stack.append(a*b)
       else:
          raise RuntimeError('interpreting error: unexpected token ', token.lexeme)
 
