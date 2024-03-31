@@ -101,7 +101,7 @@ def main():
 
    try:
       tokenizer() # tokenize source code in source
-      parser2()    # parse and compile
+      parser()    # parse and compile
 
    # on an error, display an error message
    # token is the token object on which the error was detected
@@ -121,7 +121,7 @@ def main():
 
    if grade or trace:
       print('------------------------------------------- Program output')
-   interpreter2()  # interpret bytecode in co_code
+   interpreter()  # interpret bytecode in co_code
 
 ####################
 # tokenizer        #
@@ -224,16 +224,32 @@ def consume(expectedcat):
    else:
      raise RuntimeError('Expecting ' + catnames[expectedcat])
 
-def parser2():
+# top level function of parser
+#
+# To handle MINUS, after each push to the postfix list, check if the top of
+# stack is MINUS.  If so, pop the MINUS and add it to the postfix list.
+def parser():
    leftparen_symbol = list(smalltokens.keys())[list(smalltokens.values()).index(LEFTPAREN)]
    for token in tokenslist:
-      if token.category in (PLUS, MINUS, TIMES, ASSIGNOP, PRINT):
+      if token.category in (PLUS, TIMES, ASSIGNOP, PRINT):
+         if len(stack) > 0:
+            peek = stack[-1]
+            # deal with + and * precedence
+            if token.category == PLUS and peek.category == TIMES:
+               postfix.append(stack.pop())
+         stack.append(token)
+      elif token.category in (MINUS,):
          stack.append(token)
       elif token.category in (NEWLINE, EOF):
          while len(stack) > 0:
             postfix.append(stack.pop())
       elif token.category in (NAME, UNSIGNEDINT):
-         postfix.append(token) 
+         postfix.append(token)
+         if len(stack) > 0: 
+            peek = stack[-1]
+            if peek.category == MINUS:
+               peek = stack.pop()
+               postfix.append(peek)
       elif token.category in (LEFTPAREN,):
          stack.append(token)
       elif token.category in (RIGHTPAREN,):
@@ -241,20 +257,17 @@ def parser2():
             token = stack.pop()
             lexeme = token.lexeme
             if lexeme == leftparen_symbol:
+               if len(stack) > 0: 
+                  peek = stack[-1]
+                  if peek.category == MINUS:
+                     peek = stack.pop()
+                     postfix.append(peek)
                break
             postfix.append(token) 
       else:
          raise RuntimeError('Parsing error: unexpected token ', token.lexeme)
    while len(stack) > 0:
       postfix.append(stack.pop())
-
-# top level function of parser
-def parser():
-   advance()     # advance so token holds first token
-   program()     # call start symbol function
-   # will token.category ever not equal EOF here?
-   if token.category != EOF:
-      raise RuntimeError('Expecting end of file')
 
 def program():
    while token.category in [NAME, PRINT]:
@@ -352,57 +365,12 @@ def factor():
 # bytecode interpreter #
 ########################
 def interpreter():
-   co_values = [None] * len(co_names)
-   stack = []
-   pc = 0
-
-   while pc < len(co_code):
-      opcode = co_code[pc]
-      pc += 1
-
-      if opcode == UNARY_NEGATIVE:
-         stack[-1] = -stack[-1]
-      elif opcode == BINARY_MULTIPLY:
-         right = stack.pop()
-         left = stack.pop()
-         stack.append(left * right)
-      elif opcode == BINARY_ADD:
-         right = stack.pop()
-         left = stack.pop()
-         stack.append(left + right)
-      elif opcode == PRINT_ITEM:
-         print(stack.pop(), end = '')
-      elif opcode == PRINT_NEWLINE:
-         print("")
-      elif opcode == STORE_NAME:
-         index = co_code[pc]
-         pc += 1
-         co_values[index] = stack.pop()
-      elif opcode == LOAD_CONST:
-         index = co_code[pc]
-         pc += 1
-         value = co_consts[index]
-         stack.append(value)
-      elif opcode == LOAD_NAME:
-         index = co_code[pc]
-         pc += 1
-         value = co_values[index]
-         if value == None:
-            print('No value for ' + co_names[index])
-            sys.exit(1)
-         stack.append(value)
-      else:
-         break
-
-def interpreter2():
    stack = []
    symbol = {}
    lvar = False
 
    for token in postfix:
-      print("interpreting token:", token.lexeme)
-
-   for token in postfix:
+      # print("interpreting token:", token.lexeme)
       if token.category == PRINT:
          v = stack.pop()
          if isinstance(v, str): v = symbol[v]
@@ -423,11 +391,9 @@ def interpreter2():
          if isinstance(a, str): a = symbol[a]
          stack.append(a+b)
       elif token.category == MINUS:
-         b = stack.pop()
-         a = stack.pop()
-         if isinstance(b, str): b = symbol[b]
-         if isinstance(a, str): a = symbol[a]
-         stack.append(a-b)
+         v = stack.pop()
+         if isinstance(v, str): v = symbol[v]
+         stack.append(-v)
       elif token.category == TIMES:
          b = stack.pop()
          a = stack.pop()
